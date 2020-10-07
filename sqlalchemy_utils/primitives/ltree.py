@@ -6,7 +6,7 @@ import six
 
 from ..utils import str_coercible
 
-path_matcher = re.compile(r'^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$')
+path_matcher = re.compile(r'^[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)*$')
 
 
 @str_coercible
@@ -118,10 +118,10 @@ class Ltree(object):
             )
 
     def __len__(self):
-        return len(self.path.split('.'))
+        return len(self.path.split('/'))
 
     def index(self, other):
-        subpath = Ltree(other).path.split('.')
+        subpath = Ltree(other).path.split('/')
         parts = self.path.split('.')
         for index, _ in enumerate(parts):
             if parts[index:len(subpath) + index] == subpath:
@@ -152,7 +152,7 @@ class Ltree(object):
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return Ltree(self.path.split('.')[key])
+            return Ltree(self.path.split('/')[key])
         elif isinstance(key, slice):
             return Ltree('.'.join(self.path.split('.')[key]))
         raise TypeError(
@@ -169,8 +169,8 @@ class Ltree(object):
 
             assert Ltree('1.2.3.4.5').lca('1.2.3', '1.2.3.4', '1.2.3') == '1.2'
         """
-        other_parts = [Ltree(other).path.split('.') for other in others]
-        parts = self.path.split('.')
+        other_parts = [Ltree(other).path.split('/') for other in others]
+        parts = self.path.split('/')
         for index, element in enumerate(parts):
             if any((
                 other[index] != element or len(other) <= index + 1
@@ -178,10 +178,10 @@ class Ltree(object):
             )):
                 if index == 0:
                     return None
-                return Ltree('.'.join(parts[0:index]))
+                return Ltree('/'.join(parts[0:index]))
 
     def __add__(self, other):
-        return Ltree(self.path + '.' + Ltree(other).path)
+        return Ltree(self.path + '/' + Ltree(other).path)
 
     def __radd__(self, other):
         return Ltree(other) + self
@@ -207,4 +207,4 @@ class Ltree(object):
         return self.path
 
     def __contains__(self, label):
-        return label in self.path.split('.')
+        return label in self.path.split('/')
