@@ -19,7 +19,7 @@ class Ltree(object):
 
         from sqlalchemy_utils import Ltree
 
-        Ltree('1.2.3').path  # '1.2.3'
+        Ltree('1/2/3').path  # '1/2/3'
 
 
     Ltree always validates the given path.
@@ -28,14 +28,14 @@ class Ltree(object):
 
         Ltree(None)  # raises TypeError
 
-        Ltree('..')  # raises ValueError
+        Ltree('//')  # raises ValueError
 
 
     Validator is also available as class method.
 
     ::
 
-        Ltree.validate('1.2.3')
+        Ltree.validate('1/2/3')
         Ltree.validate(None)  # raises TypeError
 
 
@@ -43,8 +43,8 @@ class Ltree(object):
 
     ::
 
-        Ltree('Countries.Finland') == Ltree('Countries.Finland')
-        Ltree('Countries.Germany') != Ltree('Countries.Finland')
+        Ltree('Countries/Finland') == Ltree('Countries/Finland')
+        Ltree('Countries/Germany') != Ltree('Countries/Finland')
 
 
     Ltree objects are hashable.
@@ -59,16 +59,16 @@ class Ltree(object):
 
     ::
 
-        assert len(Ltree('1.2')) == 2
-        assert len(Ltree('some.one.some.where'))  # 4
+        assert len(Ltree('1/2')) == 2
+        assert len(Ltree('some/one/some/where'))  # 4
 
 
     You can easily find subpath indexes.
 
     ::
 
-        assert Ltree('1.2.3').index('2.3') == 1
-        assert Ltree('1.2.3.4.5').index('3.4') == 2
+        assert Ltree('1/2/3').index('2/3') == 1
+        assert Ltree('1/2/3/4/5').index('3.4') == 2
 
 
     Ltree objects can be sliced.
@@ -76,8 +76,8 @@ class Ltree(object):
 
     ::
 
-        assert Ltree('1.2.3')[0:2] == Ltree('1.2')
-        assert Ltree('1.2.3')[1:] == Ltree('2.3')
+        assert Ltree('1/2/3')[0:2] == Ltree('1/2')
+        assert Ltree('1/2/3')[1:] == Ltree('2/3')
 
 
     Finding longest common ancestor.
@@ -85,15 +85,15 @@ class Ltree(object):
 
     ::
 
-        assert Ltree('1.2.3.4.5').lca('1.2.3', '1.2.3.4', '1.2.3') == '1.2'
-        assert Ltree('1.2.3.4.5').lca('1.2', '1.2.3') == '1'
+        assert Ltree('1/2/3/4/5').lca('1/2/3', '1/2/3/4', '1/2/3') == '1/2'
+        assert Ltree('1/2/3/4/5').lca('1/2', '1/2/3') == '1'
 
 
     Ltree objects can be concatenated.
 
     ::
 
-        assert Ltree('1.2') + Ltree('1.2') == Ltree('1.2.1.2')
+        assert Ltree('1/2') + Ltree('1/2') == Ltree('1/2/1/2')
     """
 
     def __init__(self, path_or_ltree):
@@ -122,7 +122,7 @@ class Ltree(object):
 
     def index(self, other):
         subpath = Ltree(other).path.split('/')
-        parts = self.path.split('.')
+        parts = self.path.split('/')
         for index, _ in enumerate(parts):
             if parts[index:len(subpath) + index] == subpath:
                 return index
@@ -134,7 +134,7 @@ class Ltree(object):
 
         ::
 
-            assert Ltree('1.2.3.4.5').descendant_of('1.2.3')
+            assert Ltree('1/2/3/4/5').descendant_of('1/2/3')
         """
         subpath = self[:len(Ltree(other))]
         return subpath == other
@@ -145,7 +145,7 @@ class Ltree(object):
 
         ::
 
-            assert Ltree('1.2.3').ancestor_of('1.2.3.4.5')
+            assert Ltree('1/2/3').ancestor_of('1/2/3/4/5')
         """
         subpath = Ltree(other)[:len(self)]
         return subpath == self
@@ -154,7 +154,7 @@ class Ltree(object):
         if isinstance(key, int):
             return Ltree(self.path.split('/')[key])
         elif isinstance(key, slice):
-            return Ltree('.'.join(self.path.split('.')[key]))
+            return Ltree('/'.join(self.path.split('/')[key]))
         raise TypeError(
             'Ltree indices must be integers, not {0}'.format(
                 key.__class__.__name__
@@ -167,7 +167,7 @@ class Ltree(object):
 
         ::
 
-            assert Ltree('1.2.3.4.5').lca('1.2.3', '1.2.3.4', '1.2.3') == '1.2'
+            assert Ltree('1/2/3/4/5').lca('1/2/3', '1/2/3/4', '1/2/3') == '1/2'
         """
         other_parts = [Ltree(other).path.split('/') for other in others]
         parts = self.path.split('/')
